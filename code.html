@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Medicine Reminder</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #2e86de;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      color: #2e86de;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px #ccc;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #2e86de;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1e5cad;
+    }
+
+    .reminder-list {
+      margin-top: 30px;
+    }
+
+    .reminder-item {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 5px #ddd;
+    }
+
+    .reminder-item .time {
+      font-weight: bold;
+      color: #d35400;
+    }
+
+    .taken-btn {
+      margin-top: 10px;
+      padding: 5px 10px;
+      background-color: #27ae60;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .taken-btn:hover {
+      background-color: #1e8449;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      background-color: #eee;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>💊 Smart Medicine Reminder</h1>
+    <p>Never miss your medication again!</p>
+  </header>
+
+  <main>
+    <h2>Add New Medicine</h2>
+    <form id="medicine-form">
+      <label for="name">Medicine Name:</label>
+      <input type="text" id="name" required />
+
+      <label for="dosage">Dosage:</label>
+      <input type="text" id="dosage" placeholder="e.g., 1 tablet" required />
+
+      <label for="time">Reminder Time:</label>
+      <input type="time" id="time" required />
+
+      <label for="notes">Notes (optional):</label>
+      <textarea id="notes"></textarea>
+
+      <button type="submit">Add Reminder</button>
+    </form>
+
+    <div class="reminder-list" id="reminder-list">
+      <h2>Your Reminders</h2>
+      <!-- Medicine reminders will be displayed here -->
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 Smart Medicine Reminder | Developed using HTML, CSS & JS
+  </footer>
+
+  <script>
+    const form = document.getElementById("medicine-form");
+    const list = document.getElementById("reminder-list");
+
+    let reminders = JSON.parse(localStorage.getItem("reminders")) || [];
+
+    function saveReminders() {
+      localStorage.setItem("reminders", JSON.stringify(reminders));
+    }
+
+    function renderReminders() {
+      list.innerHTML = "<h2>Your Reminders</h2>";
+      if (reminders.length === 0) {
+        list.innerHTML += "<p>No reminders yet.</p>";
+        return;
+      }
+      reminders.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "reminder-item";
+        div.innerHTML = `
+          <p><strong>${item.name}</strong> - ${item.dosage}</p>
+          <p class="time">⏰ Time: ${item.time}</p>
+          ${item.notes ? `<p>📝 ${item.notes}</p>` : ""}
+          <button class="taken-btn" onclick="markTaken(${index})">Mark as Taken</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function markTaken(index) {
+      const med = reminders[index];
+      alert(`✅ Marked "${med.name}" as taken.`);
+      reminders.splice(index, 1);
+      saveReminders();
+      renderReminders();
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const dosage = document.getElementById("dosage").value.trim();
+      const time = document.getElementById("time").value;
+      const notes = document.getElementById("notes").value.trim();
+
+      const reminder = { name, dosage, time, notes };
+      reminders.push(reminder);
+      saveReminders();
+      renderReminders();
+      form.reset();
+    });
+
+    function checkReminders() {
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
+      reminders.forEach((reminder, index) => {
+        if (reminder.time === currentTime) {
+          alert(`⏰ Reminder: Take your medicine - ${reminder.name} (${reminder.dosage})`);
+        }
+      });
+    }
+
+    // Check every minute for matching reminder
+    setInterval(checkReminders, 60000);
+
+    // Initial render
+    renderReminders();
+  </script>
+</body>
+</html>
